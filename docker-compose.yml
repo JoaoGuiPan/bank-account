@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  banking-account-api:
+    build:
+      context: ./banking-account-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - bank-network
+
+  banking-account-app:
+    build:
+      context: ./banking-account-app
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    networks:
+      - bank-network
+    depends_on:
+      - banking-account-api
+
+networks:
+  bank-network:
+    driver: bridge
