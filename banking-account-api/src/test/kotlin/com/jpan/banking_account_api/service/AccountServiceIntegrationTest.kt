@@ -55,8 +55,8 @@ class AccountServiceIntegrationTest {
         val balances = accountService.getAllAccountsBalance()
 
         assertEquals(2, balances.size)
-        assertTrue(balances.any { it.account == account1.user && it.balance == account1.balance })
-        assertTrue(balances.any { it.account == account2.user && it.balance == account2.balance })
+        assertTrue(balances.any { it.account == account1.id && it.balance == account1.balance })
+        assertTrue(balances.any { it.account == account2.id && it.balance == account2.balance })
     }
 
     @Test
@@ -146,15 +146,22 @@ class AccountServiceIntegrationTest {
         }
     }
 
-//    @Test
-//    fun `createAccount should throw exception if balance is negative`() = runTest {
-//        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, -100.0)
-//
-//        val exception = assertThrows(Exception::class.java) {
-//            runTest { accountService.createAccount(openAccountDto) }
-//        }
-//
-//        assertTrue(exception.message!!.contains("Validation failed"))
-//        assertTrue(exception.message!!.contains("balance: must be greater than 0"))
-//    }
+    @Test
+    fun `createAccount should throw exception if balance is negative`() = runTest {
+        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, -100.0)
+
+        assertThrows(Exception::class.java) {
+            runTest { accountService.createAccount(openAccountDto) }
+        }
+    }
+
+    @Test
+    fun `createAccount should throw exception if user already exists`() = runTest {
+        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, 100.0)
+        accountService.createAccount(openAccountDto)
+
+        assertThrows(Exception::class.java) {
+            runTest { accountService.createAccount(openAccountDto) }
+        }
+    }
 }

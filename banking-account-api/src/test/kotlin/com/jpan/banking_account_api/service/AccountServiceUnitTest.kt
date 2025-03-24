@@ -30,6 +30,7 @@ class AccountServiceUnitTest(
         val expectedAccount = Account(userLastName = "Doe", cardType = CardType.DEBIT, balance = 100.0)
 
         coEvery { accountRepository.insert(any()) } returns expectedAccount
+        coEvery { accountRepository.findByUserLastName(any()) } returns null
 
         val actualAccount = accountService.createAccount(openAccountDto)
 
@@ -39,8 +40,8 @@ class AccountServiceUnitTest(
 
     @Test
     fun `getAllAccountsBalance should return a list of AccountBalanceDto`() = runTest {
-        val account1 = Account(userLastName = "Doe", cardType = CardType.DEBIT, balance = 100.0, user = "user1")
-        val account2 = Account(userLastName = "Smith", cardType = CardType.CREDIT, balance = 200.0, user = "user2")
+        val account1 = Account(userLastName = "Doe", cardType = CardType.DEBIT, balance = 100.0, id = "account1")
+        val account2 = Account(userLastName = "Smith", cardType = CardType.CREDIT, balance = 200.0, id = "account2")
         val accounts = listOf(account1, account2)
 
         coEvery { accountRepository.findAll() } returns accounts
@@ -48,9 +49,9 @@ class AccountServiceUnitTest(
         val result = accountService.getAllAccountsBalance()
 
         assertEquals(2, result.size)
-        assertEquals("user1", result[0].account)
+        assertEquals("account1", result[0].account)
         assertEquals(100.0, result[0].balance)
-        assertEquals("user2", result[1].account)
+        assertEquals("account2", result[1].account)
         assertEquals(200.0, result[1].balance)
         coVerify(exactly = 1) { accountRepository.findAll() }
     }
@@ -159,5 +160,26 @@ class AccountServiceUnitTest(
             runTest { accountService.depositAmount(accountId, depositAmount) }
         }
         coVerify(exactly = 0) { accountRepository.update(any()) }
+    }
+
+    @Test
+    fun `createAccount should throw exception if balance is negative`() = runTest {
+        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, -100.0)
+
+        assertThrows(Exception::class.java) {
+            runTest { accountService.createAccount(openAccountDto) }
+        }
+    }
+
+    @Test
+    fun `createAccount should throw exception if user already exists`() = runTest {
+        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, 100.0)
+        val account = Account(userLastName = "Doe", cardType = CardType.DEBIT, balance = 100.0)
+
+        coEvery { accountRepository.findByUserLastName(any()) } returns account
+
+        assertThrows(Exception::class.java) {
+            runTest { accountService.createAccount(openAccountDto) }
+        }
     }
 }

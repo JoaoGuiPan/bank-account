@@ -77,8 +77,8 @@ class AccountControllerMvcTest {
 
     @Test
     fun `getAllAccountBalances should return all account balances`() = runBlocking {
-        val accountBalanceDto1 = AccountBalanceDto("user1", "Doe", 100.0)
-        val accountBalanceDto2 = AccountBalanceDto("user2", "Smith", 200.0)
+        val accountBalanceDto1 = AccountBalanceDto("account1", "Doe", 100.0)
+        val accountBalanceDto2 = AccountBalanceDto("account2", "Smith", 200.0)
         val expectedResponse = listOf(accountBalanceDto1, accountBalanceDto2)
 
         coEvery { accountService.getAllAccountsBalance() } returns expectedResponse
@@ -89,10 +89,10 @@ class AccountControllerMvcTest {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.accounts.length()").isEqualTo(2)
-            .jsonPath("$.accounts[0].user").isEqualTo("user1")
+            .jsonPath("$.accounts[0].account").isEqualTo("account1")
             .jsonPath("$.accounts[0].userLastName").isEqualTo("Doe")
             .jsonPath("$.accounts[0].balance").isEqualTo(100.0)
-            .jsonPath("$.accounts[1].user").isEqualTo("user2")
+            .jsonPath("$.accounts[1].account").isEqualTo("account2")
             .jsonPath("$.accounts[1].userLastName").isEqualTo("Smith")
             .jsonPath("$.accounts[1].balance").isEqualTo(200.0)
 
@@ -164,5 +164,35 @@ class AccountControllerMvcTest {
             .jsonPath("$.balance").isEqualTo(150.0)
 
         coVerify(exactly = 1) { accountService.depositAmount(accountId, amount) }
+    }
+
+    @Test
+    fun `openAccount should return Internal Server Error if balance is negative`() = runBlocking {
+        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, -100.0)
+
+        webTestClient.post()
+            .uri("/accounts/open")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(objectMapper.writeValueAsString(openAccountDto))
+            .exchange()
+            .expectStatus().is5xxServerError
+
+        coVerify(exactly = 1) { accountService.createAccount(openAccountDto) }
+    }
+
+    @Test
+    fun `openAccount should return Internal Server Error if user already exists`() = runBlocking {
+        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, 100.0)
+
+        coEvery { accountService.createAccount(any()) } throws IllegalStateException("User already exists")
+
+        webTestClient.post()
+            .uri("/accounts/open")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(objectMapper.writeValueAsString(openAccountDto))
+            .exchange()
+            .expectStatus().is5xxServerError
+
+        coVerify(exactly = 1) { accountService.createAccount(openAccountDto) }
     }
 }

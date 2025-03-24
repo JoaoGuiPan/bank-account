@@ -7,24 +7,21 @@ import com.jpan.banking_account_api.model.Account
 import com.jpan.banking_account_api.model.AccountId
 import com.jpan.banking_account_api.model.CardType
 import com.jpan.banking_account_api.model.repository.AccountRepository
-import jakarta.validation.Valid
+import jakarta.validation.executable.ValidateOnExecution
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.validation.annotation.Validated
 import java.time.LocalDate
 
 @Service
-@Validated
 class AccountService(
     private val accountRepository: AccountRepository
 ) {
-
     val logger: Logger = LoggerFactory.getLogger(AccountService::class.java)
 
-    suspend fun createAccount(
-        @Valid openAccountDto: OpenAccountDto
-    ): Account {
+    @ValidateOnExecution
+    suspend fun createAccount(openAccountDto: OpenAccountDto): Account {
+        validateOpenAccount(openAccountDto)
         logger.debug("Creating account")
         val account = Account(
             userLastName = openAccountDto.userLastName,
@@ -55,6 +52,7 @@ class AccountService(
             balance = account.balance - amount.withCardFee(account.cardType),
             updatedAt = LocalDate.now()
         )
+        validateBalance(updatedAccount.balance)
         return accountRepository.update(updatedAccount)
     }
 
@@ -77,7 +75,26 @@ class AccountService(
             balance = account.balance + amount,
             updatedAt = LocalDate.now()
         )
+        validateBalance(updatedAccount.balance)
         return accountRepository.update(updatedAccount)
+    }
+
+    /**
+     * Balance should be positive and lastName is unique.
+     */
+    private suspend fun validateOpenAccount(openAccountDto: OpenAccountDto) {
+        logger.debug("Validating account")
+        validateBalance(openAccountDto.balance)
+        check(accountRepository.findByUserLastName(openAccountDto.userLastName) == null) {
+            "User already exists"
+        }
+    }
+
+    /**
+     * Balance should be positive.
+     */
+    private fun validateBalance(balance: Double) {
+        check(balance >= 0) { "Balance must be positive" }
     }
 }
 
