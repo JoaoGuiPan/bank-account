@@ -1,7 +1,7 @@
 
 <main class="main">
   <mat-card appearance="outlined">
-    <mat-card-header class="card-header">
+    <mat-card-header class="mat-row">
       <mat-card-title>Account Balance Overview</mat-card-title>
       <mat-card-subtitle>Accounts with current balance per user</mat-card-subtitle>
     </mat-card-header>
@@ -10,8 +10,8 @@
         <table mat-table [dataSource]="dataSource">
     
           <ng-container matColumnDef="account">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> User ID </th>
-            <td mat-cell *matCellDef="let row"> {{row.user}} </td>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Account ID </th>
+            <td mat-cell *matCellDef="let row"> {{row.account}} </td>
           </ng-container>
 
           <ng-container matColumnDef="username">
