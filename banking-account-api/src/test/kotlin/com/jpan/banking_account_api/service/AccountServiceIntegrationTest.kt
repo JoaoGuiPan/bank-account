@@ -55,8 +55,8 @@ class AccountServiceIntegrationTest {
         val balances = accountService.getAllAccountsBalance()
 
         assertEquals(2, balances.size)
-        assertTrue(balances.any { it.user == account1.user && it.balance == account1.balance })
-        assertTrue(balances.any { it.user == account2.user && it.balance == account2.balance })
+        assertTrue(balances.any { it.account == account1.user && it.balance == account1.balance })
+        assertTrue(balances.any { it.account == account2.user && it.balance == account2.balance })
     }
 
     @Test
@@ -145,4 +145,16 @@ class AccountServiceIntegrationTest {
             runTest { accountService.depositAmount(accountId, depositAmount) }
         }
     }
+
+//    @Test
+//    fun `createAccount should throw exception if balance is negative`() = runTest {
+//        val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, -100.0)
+//
+//        val exception = assertThrows(Exception::class.java) {
+//            runTest { accountService.createAccount(openAccountDto) }
+//        }
+//
+//        assertTrue(exception.message!!.contains("Validation failed"))
+//        assertTrue(exception.message!!.contains("balance: must be greater than 0"))
+//    }
 }

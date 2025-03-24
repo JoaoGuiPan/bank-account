@@ -48,9 +48,9 @@ class AccountServiceUnitTest(
         val result = accountService.getAllAccountsBalance()
 
         assertEquals(2, result.size)
-        assertEquals("user1", result[0].user)
+        assertEquals("user1", result[0].account)
         assertEquals(100.0, result[0].balance)
-        assertEquals("user2", result[1].user)
+        assertEquals("user2", result[1].account)
         assertEquals(200.0, result[1].balance)
         coVerify(exactly = 1) { accountRepository.findAll() }
     }

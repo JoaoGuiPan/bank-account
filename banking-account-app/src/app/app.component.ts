@@ -16,7 +16,7 @@ export class AppComponent {
   title = 'banking-account-app';
 
   accountList: AccountBalance[] = [];
-  displayedColumns: string[] = ['user', 'balance'];
+  displayedColumns: string[] = ['account', 'username', 'balance'];
   dataSource: MatTableDataSource<AccountBalance> = new MatTableDataSource();
 
   constructor(private accountBalanceService: AccountBalanceService) {

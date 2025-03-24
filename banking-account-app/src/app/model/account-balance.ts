@@ -1,5 +1,6 @@
 export interface AccountBalance {
     account: string;
+    userLastName: string;
     balance: number;
 }
 

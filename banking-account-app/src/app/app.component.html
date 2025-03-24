@@ -9,9 +9,14 @@
       <div class="mat-elevation-z8">
         <table mat-table [dataSource]="dataSource">
     
-          <ng-container matColumnDef="user">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> User </th>
+          <ng-container matColumnDef="account">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> User ID </th>
             <td mat-cell *matCellDef="let row"> {{row.user}} </td>
+          </ng-container>
+
+          <ng-container matColumnDef="username">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> User last name </th>
+            <td mat-cell *matCellDef="let row"> {{row.userLastName}} </td>
           </ng-container>
     
           <ng-container matColumnDef="balance">

@@ -38,7 +38,7 @@ class AccountService(
         logger.debug("Getting all accounts balance")
         return accountRepository.findAll().map {
             AccountBalanceDto(
-                it.user,
+                it.id,
                 it.userLastName,
                 it.balance
             )
