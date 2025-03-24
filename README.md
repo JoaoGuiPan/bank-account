@@ -2,6 +2,14 @@
 
 This project is an application that simulates common bank account operations.
 
+My assumptions/considerations when writing the code:
+- Only Last name is saved to the database to preserve users' privacy;
+- No Card data is stored locally to prevent security issues;
+- Data was stored entirely in one table for sake of simplicity, but stored foreign keys should make it easy to fetch more data if needed;
+- Front-end is very very simple, but it looks "nice" and I consider enough to show most of the concepts I know. It is also production ready;
+- Exception handling is also very simple and I would have added more Custom Exceptions if I had more time;
+- My understanding is that only one Card is linked to the Account, regardless of its type.
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:

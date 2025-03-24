@@ -62,7 +62,7 @@ class AccountControllerMvcTest {
         coEvery { accountService.createAccount(any()) } returns expectedAccount
 
         webTestClient.post()
-            .uri("/accounts/open")
+            .uri("/api/accounts/open")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(openAccountDto))
             .exchange()
@@ -84,7 +84,7 @@ class AccountControllerMvcTest {
         coEvery { accountService.getAllAccountsBalance() } returns expectedResponse
 
         webTestClient.get()
-            .uri("/accounts")
+            .uri("/api/accounts")
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -108,7 +108,7 @@ class AccountControllerMvcTest {
         coEvery { accountService.withdrawAmount(any(), any()) } returns expectedAccount
 
         webTestClient.put()
-            .uri("/accounts/$accountId/withdraw?amount=$amount")
+            .uri("/api/accounts/$accountId/withdraw?amount=$amount")
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -131,7 +131,7 @@ class AccountControllerMvcTest {
         coEvery { accountService.transferAmount(any(), any()) } returns expectedAccount
 
         webTestClient.put()
-            .uri("/accounts/$fromAccountId/transfer")
+            .uri("/api/accounts/$fromAccountId/transfer")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(transaction))
             .exchange()
@@ -154,7 +154,7 @@ class AccountControllerMvcTest {
         coEvery { accountService.depositAmount(any(), any()) } returns expectedAccount
 
         webTestClient.put()
-            .uri("/accounts/$accountId/deposit?amount=$amount")
+            .uri("/api/accounts/$accountId/deposit?amount=$amount")
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -171,7 +171,7 @@ class AccountControllerMvcTest {
         val openAccountDto = OpenAccountDto("Doe", CardType.DEBIT, -100.0)
 
         webTestClient.post()
-            .uri("/accounts/open")
+            .uri("/api/accounts/open")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(openAccountDto))
             .exchange()
@@ -187,7 +187,7 @@ class AccountControllerMvcTest {
         coEvery { accountService.createAccount(any()) } throws IllegalStateException("User already exists")
 
         webTestClient.post()
-            .uri("/accounts/open")
+            .uri("/api/accounts/open")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(openAccountDto))
             .exchange()

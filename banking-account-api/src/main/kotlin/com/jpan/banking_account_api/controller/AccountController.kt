@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*
 
 @Validated
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/api/accounts")
 @Tag(name = "Accounts", description = "Operations related to bank accounts")
 class AccountController(
     val accountService: AccountService
