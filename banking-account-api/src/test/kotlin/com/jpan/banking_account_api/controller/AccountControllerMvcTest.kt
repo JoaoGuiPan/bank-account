@@ -77,8 +77,8 @@ class AccountControllerMvcTest {
 
     @Test
     fun `getAllAccountBalances should return all account balances`() = runBlocking {
-        val accountBalanceDto1 = AccountBalanceDto("user1", 100.0)
-        val accountBalanceDto2 = AccountBalanceDto("user2", 200.0)
+        val accountBalanceDto1 = AccountBalanceDto("user1", "Doe", 100.0)
+        val accountBalanceDto2 = AccountBalanceDto("user2", "Smith", 200.0)
         val expectedResponse = listOf(accountBalanceDto1, accountBalanceDto2)
 
         coEvery { accountService.getAllAccountsBalance() } returns expectedResponse
@@ -90,8 +90,10 @@ class AccountControllerMvcTest {
             .expectBody()
             .jsonPath("$.accounts.length()").isEqualTo(2)
             .jsonPath("$.accounts[0].user").isEqualTo("user1")
+            .jsonPath("$.accounts[0].userLastName").isEqualTo("Doe")
             .jsonPath("$.accounts[0].balance").isEqualTo(100.0)
             .jsonPath("$.accounts[1].user").isEqualTo("user2")
+            .jsonPath("$.accounts[1].userLastName").isEqualTo("Smith")
             .jsonPath("$.accounts[1].balance").isEqualTo(200.0)
 
         coVerify(exactly = 1) { accountService.getAllAccountsBalance() }
@@ -105,7 +107,7 @@ class AccountControllerMvcTest {
 
         coEvery { accountService.withdrawAmount(any(), any()) } returns expectedAccount
 
-        webTestClient.post()
+        webTestClient.put()
             .uri("/accounts/$accountId/withdraw?amount=$amount")
             .exchange()
             .expectStatus().isOk
@@ -128,7 +130,7 @@ class AccountControllerMvcTest {
 
         coEvery { accountService.transferAmount(any(), any()) } returns expectedAccount
 
-        webTestClient.post()
+        webTestClient.put()
             .uri("/accounts/$fromAccountId/transfer")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(transaction))
@@ -151,7 +153,7 @@ class AccountControllerMvcTest {
 
         coEvery { accountService.depositAmount(any(), any()) } returns expectedAccount
 
-        webTestClient.post()
+        webTestClient.put()
             .uri("/accounts/$accountId/deposit?amount=$amount")
             .exchange()
             .expectStatus().isOk
