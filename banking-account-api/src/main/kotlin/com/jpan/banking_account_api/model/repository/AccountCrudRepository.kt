@@ -20,6 +20,8 @@ class AccountRepository(
 
     suspend fun update(account: Account): Account = accountRepository.save(account)
 
+    suspend fun updateAll(accounts: List<Account>): List<Account> = accountRepository.saveAll(accounts).asFlux().collectList().awaitSingle()
+
     suspend fun findById(id: String): Account? = accountRepository.findById(id)
 
     suspend fun findByUserLastName(userLastName: String): Account? = accountRepository.findByUserLastName(userLastName)

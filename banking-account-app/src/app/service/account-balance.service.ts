@@ -11,6 +11,6 @@ export class AccountBalanceService {
   constructor(private http: HttpClient) { }
 
   getAllAccountBalances() {
-    return this.http.get<AccountBalanceResponse>('/api/accounts')
+    return this.http.get<AccountBalanceResponse>('/api/accounts/balances')
   }
 }

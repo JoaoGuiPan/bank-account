@@ -48,7 +48,7 @@ class AccountController(
         return ResponseEntity.ok(account)
     }
 
-    @GetMapping
+    @GetMapping("/balances")
     @Operation(summary = "Returns all account balances per user id")
     @ApiResponses(
         value = [
@@ -76,7 +76,7 @@ class AccountController(
         id: AccountId,
         @RequestParam
         @Parameter(description = "Amount to be withdrawn.")
-        amount: Double
+        amount: String
     ): ResponseEntity<Account> {
         logger.info("Withdrawing {} from account {}", amount, id)
         val account = accountService.withdrawAmount(id, amount)
@@ -120,7 +120,7 @@ class AccountController(
         id: AccountId,
         @RequestParam
         @Parameter(description = "Amount to be deposited.")
-        amount: Double
+        amount: String
     ): ResponseEntity<Account> {
         logger.info("Depositing {} to account {}", amount, id)
         val account = accountService.depositAmount(id, amount)

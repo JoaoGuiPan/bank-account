@@ -11,6 +11,7 @@ import jakarta.validation.executable.ValidateOnExecution
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Service
@@ -26,7 +27,7 @@ class AccountService(
         val account = Account(
             userLastName = openAccountDto.userLastName,
             cardType = openAccountDto.cardType,
-            balance = openAccountDto.balance
+            balance = BigDecimal(openAccountDto.balance)
         )
         return accountRepository.insert(account)
     }
@@ -42,39 +43,55 @@ class AccountService(
         }
     }
 
+    /**
+     * Withdraws amount from user account.
+     */
     suspend fun withdrawAmount(
         accountId: AccountId,
-        amount: Double
+        amount: String
     ): Account {
         logger.debug("Withdrawing amount from account {}", accountId)
-        val account = accountRepository.findById(accountId) ?: throw Exception("Account not found")
-        val updatedAccount = account.copy(
-            balance = account.balance - amount.withCardFee(account.cardType),
-            updatedAt = LocalDate.now()
-        )
+        val account = getExistingAccountValidated(accountId)
+        val updatedAccount = account.withdraw(BigDecimal(amount))
         validateBalance(updatedAccount.balance)
         return accountRepository.update(updatedAccount)
     }
 
+    /**
+     * Transfers amount from user account to another specified by transaction recipient.
+     */
     suspend fun transferAmount(
-        from: AccountId,
+        account: AccountId,
         transaction: TransferTransactionDto
     ): Account {
-        logger.debug("Transferring amount from account {} to account {}", from, transaction.recipient)
-        depositAmount(transaction.recipient, transaction.amount)
-        return withdrawAmount(from, transaction.amount)
+        logger.debug("Transferring amount from account {} to account {}", account, transaction.recipient)
+        val accountToWithdrawn = getExistingAccountValidated(account)
+        val accountToDeposit = getExistingAccountValidated(transaction.recipient)
+
+        val amount = BigDecimal(transaction.amount)
+
+        val deposit = accountToDeposit.deposit(amount)
+        validateBalance(deposit.balance)
+
+        val withdrawn = accountToWithdrawn.withdraw(amount)
+        validateBalance(withdrawn.balance)
+
+        // makes sure both entities are updated at the same time
+        accountRepository.updateAll(listOf(deposit, withdrawn))
+
+        return withdrawn
     }
 
+    /**
+     * Deposits amount to user account.
+     */
     suspend fun depositAmount(
         accountId: AccountId,
-        amount: Double
+        amount: String
     ): Account {
         logger.debug("Depositing amount to account {}", accountId)
-        val account = accountRepository.findById(accountId) ?: throw Exception("Account not found")
-        val updatedAccount = account.copy(
-            balance = account.balance + amount,
-            updatedAt = LocalDate.now()
-        )
+        val account = getExistingAccountValidated(accountId)
+        val updatedAccount = account.deposit(BigDecimal(amount))
         validateBalance(updatedAccount.balance)
         return accountRepository.update(updatedAccount)
     }
@@ -84,7 +101,8 @@ class AccountService(
      */
     private suspend fun validateOpenAccount(openAccountDto: OpenAccountDto) {
         logger.debug("Validating account")
-        validateBalance(openAccountDto.balance)
+        val balance = BigDecimal(openAccountDto.balance)
+        validateBalance(balance)
         check(accountRepository.findByUserLastName(openAccountDto.userLastName) == null) {
             "User already exists"
         }
@@ -93,17 +111,34 @@ class AccountService(
     /**
      * Balance should be positive.
      */
-    private fun validateBalance(balance: Double) {
-        check(balance >= 0) { "Balance must be positive" }
+    private fun validateBalance(balance: BigDecimal) {
+        check(balance >= BigDecimal.ZERO) { "Balance must be positive" }
+    }
+
+    private suspend fun getExistingAccountValidated(accountId: AccountId): Account {
+        val account = accountRepository.findById(accountId)
+        checkNotNull(account) { "Account not found" }
+        return account
     }
 }
 
 /**
  * If a transfer/withdraw is done with a credit card, 1% of the amount is charged extra.
  */
-private fun Double.withCardFee(cardType: CardType): Double {
+private fun BigDecimal.withCardFee(cardType: CardType): BigDecimal {
     if (cardType == CardType.CREDIT) {
-        return this * 1.01
+        val cardFee = BigDecimal("1.01")
+        return this * cardFee
     }
     return this
 }
+
+private fun Account.deposit(amount: BigDecimal): Account = this.copy(
+    balance = this.balance + amount,
+    updatedAt = LocalDate.now()
+)
+
+private fun Account.withdraw(amount: BigDecimal): Account = this.copy(
+    balance = this.balance - amount.withCardFee(this.cardType),
+    updatedAt = LocalDate.now()
+)
